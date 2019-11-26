@@ -23,24 +23,68 @@ namespace ID3_Test
             using (BinaryReader br = new BinaryReader(fs))
             {
                 this.way = way;
-                GetHeader(this.way,br);
+                GetHeader(this.way, br);
                 GetFrame_v34(br);
             }
         }
 
-        void GetHeader(string way,BinaryReader br)
+        void GetHeader(string way, BinaryReader br)
         {
-            
+
             {
                 ByteReader(sign, br);
                 ByteReader(version, br);
                 flags = br.ReadByte();
                 ByteReader(byteSize, br);
-                size = BitConverter.ToInt32(byteSize, 3);                
+                size = IntMaker(byteSize);
+
+                Console.WriteLine(GetContent(sign) + " " + GetContent(version));
+                Console.WriteLine(size +'\n');
+
             }
         }
 
-        void ByteReader(byte[] array,BinaryReader br)
+        
+
+        void GetFrame_v2(BinaryReader br)
+        {
+
+        }
+
+
+
+        void GetFrame_v34(BinaryReader br)
+        {
+
+            while (1 > 0)
+            {
+                byte[] id = new byte[4];
+                byte[] byteSize = new byte[4];
+                int size; // Какие-то лютые траблы с Size'ом
+                byte[] flags = new byte[2];
+                byte[] byteContent;
+                string content;
+
+
+                ByteReader(id, br);
+                ByteReader(byteSize, br);
+                size = IntMaker(byteSize);
+                ByteReader(flags, br);
+                byteContent = new byte[size];
+                ByteReader(byteContent, br);
+                content = GetContent(byteContent);
+
+
+                Console.WriteLine(GetContent(id));
+                Console.WriteLine(size);
+                Console.WriteLine(content + '\n');
+
+            }
+        }
+
+       
+
+        void ByteReader(byte[] array, BinaryReader br)
         {
             for (int i = 0; i < array.Length; i++)
             {
@@ -48,55 +92,21 @@ namespace ID3_Test
             }
         }
 
-        void GetFrame_v2(BinaryReader br)
+        int IntMaker(byte[] size)
         {
-            
+            return size[3] + (size[2] << 7) + (size[1] << 14) + (size[0] << 21);
         }
 
-        
-
-        void GetFrame_v34(BinaryReader br)
+        string GetContent(byte[] content)
         {
-
-           // while (size > br.BaseStream.Position)
+            string ans = "";
+            for (int i = 0; i < content.Length; i++)
             {
-                byte[] id = new byte[4];
-                int size; // Какие-то лютые траблы с Size'ом
-                byte[] flags = new byte[2];
-                byte[] content;
-
-             
-                ByteReader(id, br);
-                size = br.ReadInt32();
-                ByteReader(flags, br);
-
-                content = new byte[size];
-                ByteReader(content, br);
-
+                if (((char)content[i]) == '\0')
+                    continue;
+                ans += ((char)content[i]).ToString();
             }
-        }
-
-        public void Writer()
-        {
-            foreach (byte item in sign)
-                Console.Write(item + " ");
-            Console.WriteLine();
-            foreach (byte item in sign)
-                Console.Write((char)item + " ");
-            Console.WriteLine();
-
-            foreach (byte item in version)
-                Console.Write(item + " ");
-            Console.WriteLine();
-            foreach (byte item in version)
-                Console.Write((char)item + " ");
-            Console.WriteLine();
-
-            Console.WriteLine(flags);
-            Console.WriteLine(flags.ToString());
-
-            Console.WriteLine(size);
-
+            return ans;
         }
     }
 }

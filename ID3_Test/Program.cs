@@ -26,7 +26,6 @@ namespace ID3_Test
             if (id3_type)
             { 
                 test = new ID3v2(way);
-                test.Writer();
             }
           
         }
