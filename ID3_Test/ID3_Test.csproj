@@ -49,6 +49,9 @@
     <Compile Include="ID3v2.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Tags\MainTag.cs" />
+    <Compile Include="Tags\TCON.cs" />
+    <Compile Include="TagV2.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />

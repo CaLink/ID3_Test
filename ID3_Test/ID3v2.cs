@@ -1,4 +1,5 @@
-﻿using System;
+﻿using ID3_Test.Tags;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -7,14 +8,23 @@ using System.Threading.Tasks;
 
 namespace ID3_Test
 {
-    class ID3v2
+    class ID3v2 : TagV2
     {
+
         string way;
         public byte[] sign = new byte[3];
         public byte[] version = new byte[2];
         public byte flags;
         public byte[] byteSize = new byte[4];
         public int size;
+
+        public MainTag TRCK;
+        public MainTag TIT2;
+        public MainTag TPE1;
+        public MainTag TALB;
+        public TCON TCON;
+        public MainTag TYER;
+
 
 
         public ID3v2(string way)
@@ -30,21 +40,36 @@ namespace ID3_Test
 
         void GetHeader(string way, BinaryReader br)
         {
-
+            bool find = false;
+            while ((br.BaseStream.Length - br.BaseStream.Position) >= 10)
             {
                 ByteReader(sign, br);
-                ByteReader(version, br);
-                flags = br.ReadByte();
-                ByteReader(byteSize, br);
-                size = IntMaker(byteSize);
-
-                Console.WriteLine(GetContent(sign) + " " + GetContent(version));
-                Console.WriteLine(size +'\n');
-
+                find = true;
+                break;
             }
+
+            if (find)
+                if (GetContent(sign) == "ID3")
+                {
+                    ByteReader(version, br);
+                    flags = br.ReadByte();
+                    ByteReader(byteSize, br);
+                    size = IntMaker(byteSize);
+
+                    Console.WriteLine(GetContent(sign) + " " + GetContent(version));
+                    Console.WriteLine(size);
+                    Console.WriteLine();
+                }
+                else if (GetContent(sign) == "TAG")
+                { }
+                else
+                {
+                    Console.WriteLine("AAAAAAAAA STOP 000000000000 AAAAAAAAAAAAAAAA");
+                }
+
         }
 
-        
+
 
         void GetFrame_v2(BinaryReader br)
         {
@@ -55,58 +80,31 @@ namespace ID3_Test
 
         void GetFrame_v34(BinaryReader br)
         {
+            int findAll = 0;
 
-            while (1 > 0)
+            byte[] id = new byte[4];
+            ByteReader(id, br);
+            string temp = GetContent(id);
+
+            while (findAll != 6 && ((br.BaseStream.Length - br.BaseStream.Position) >= 4))
             {
-                byte[] id = new byte[4];
-                byte[] byteSize = new byte[4];
-                int size; // Какие-то лютые траблы с Size'ом
-                byte[] flags = new byte[2];
-                byte[] byteContent;
-                string content;
+                switch (temp)
+                {
+                    case "TRCK": TRCK = new MainTag(br, id); findAll++; TRCK.WriteInfo(); break;
+                    case "TIT2": TIT2 = new MainTag(br, id); findAll++; TIT2.WriteInfo(); break;
+                    case "TPE1": TPE1 = new MainTag(br, id); findAll++; TPE1.WriteInfo(); break;
+                    case "TALB": TALB = new MainTag(br, id); findAll++; TALB.WriteInfo(); break;
+                    case "TYER": TYER = new MainTag(br, id); findAll++; TYER.WriteInfo(); break;
+                    case "TCON": TCON = new TCON(br, id); findAll++; TCON.WriteInfo(); break;
+                }
 
-
-                ByteReader(id, br);
-                ByteReader(byteSize, br);
-                size = IntMaker(byteSize);
-                ByteReader(flags, br);
-                byteContent = new byte[size];
-                ByteReader(byteContent, br);
-                content = GetContent(byteContent);
-
-
-                Console.WriteLine(GetContent(id));
-                Console.WriteLine(size);
-                Console.WriteLine(content + '\n');
-
+                id[0] = id[1];
+                id[1] = id[2];
+                id[2] = id[3];
+                id[3] = br.ReadByte();
+                temp = GetContent(id);
             }
         }
 
-       
-
-        void ByteReader(byte[] array, BinaryReader br)
-        {
-            for (int i = 0; i < array.Length; i++)
-            {
-                array[i] = br.ReadByte();
-            }
-        }
-
-        int IntMaker(byte[] size)
-        {
-            return size[3] + (size[2] << 7) + (size[1] << 14) + (size[0] << 21);
-        }
-
-        string GetContent(byte[] content)
-        {
-            string ans = "";
-            for (int i = 0; i < content.Length; i++)
-            {
-                if (((char)content[i]) == '\0')
-                    continue;
-                ans += ((char)content[i]).ToString();
-            }
-            return ans;
-        }
     }
 }
